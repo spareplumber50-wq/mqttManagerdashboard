@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  mqtt-dashboard:
+    build: .
+    container_name: mqtt-dashboard
+    ports:
+      - "80:80"
+    volumes:
+      - ./mqtt_data_points.json:/app/mqtt_data_points.json
+      - ./data:/app/data
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+    restart: unless-stopped
+    networks:
+      - mqtt-network
+
+networks:
+  mqtt-network:
+    driver: bridge

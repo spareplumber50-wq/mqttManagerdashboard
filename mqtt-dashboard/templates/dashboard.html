@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MQTT Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>MQTT Dashboard</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-section="connections">
+                    <span class="nav-icon">🔌</span>
+                    <span>Connections</span>
+                </a>
+                <a href="#" class="nav-item" data-section="data">
+                    <span class="nav-icon">📊</span>
+                    <span>Data Points</span>
+                </a>
+                <a href="#" class="nav-item" data-section="terminal">
+                    <span class="nav-icon">💻</span>
+                    <span>Terminal</span>
+                </a>
+                <a href="#" class="nav-item" data-section="export">
+                    <span class="nav-icon">📤</span>
+                    <span>Export</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <span>{{ user.name }}</span>
+                    <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <h1 id="section-title">MQTT Connections</h1>
+                <div class="header-actions">
+                    <span class="status-indicator" id="status-indicator">
+                        <span class="status-dot"></span>
+                        <span id="status-text">Ready</span>
+                    </span>
+                </div>
+            </header>
+
+            <!-- Connections Section -->
+            <section id="connections-section" class="content-section active">
+                <div class="section-card">
+                    <h3>Connect to MQTT Broker</h3>
+                    <form id="broker-connect-form" class="form-grid">
+                        <div class="form-group">
+                            <label for="broker-id">Broker ID</label>
+                            <input type="text" id="broker-id" placeholder="e.g., main-broker" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="broker-host">Host</label>
+                            <input type="text" id="broker-host" placeholder="e.g., mqtt.example.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="broker-port">Port</label>
+                            <input type="number" id="broker-port" value="1883" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="broker-username">Username (optional)</label>
+                            <input type="text" id="broker-username" placeholder="Username">
+                        </div>
+                        <div class="form-group">
+                            <label for="broker-password">Password (optional)</label>
+                            <input type="password" id="broker-password" placeholder="Password">
+                        </div>
+                        <div class="form-group full-width">
+                            <button type="submit" class="btn btn-primary">Connect to Broker</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="section-card">
+                    <h3>Active Brokers</h3>
+                    <div id="active-brokers" class="brokers-list">
+                        <p class="empty-state">No active connections</p>
+                    </div>
+                </div>
+
+                <div class="section-card">
+                    <h3>Subscribe to Topic</h3>
+                    <form id="subscribe-form" class="form-grid">
+                        <div class="form-group">
+                            <label for="sub-broker-id">Broker ID</label>
+                            <input type="text" id="sub-broker-id" placeholder="Broker ID" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="sub-topic">Topic</label>
+                            <input type="text" id="sub-topic" placeholder="e.g., sensors/temperature" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="sub-qos">QoS</label>
+                            <select id="sub-qos">
+                                <option value="0">0 - At most once</option>
+                                <option value="1">1 - At least once</option>
+                                <option value="2">2 - Exactly once</option>
+                            </select>
+                        </div>
+                        <div class="form-group full-width">
+                            <button type="submit" class="btn btn-primary">Subscribe</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="section-card">
+                    <h3>Publish Message</h3>
+                    <form id="publish-form" class="form-grid">
+                        <div class="form-group">
+                            <label for="pub-broker-id">Broker ID</label>
+                            <input type="text" id="pub-broker-id" placeholder="Broker ID" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="pub-topic">Topic</label>
+                            <input type="text" id="pub-topic" placeholder="e.g., commands/light" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="pub-qos">QoS</label>
+                            <select id="pub-qos">
+                                <option value="0">0 - At most once</option>
+                                <option value="1">1 - At least once</option>
+                                <option value="2">2 - Exactly once</option>
+                            </select>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="pub-payload">Payload</label>
+                            <textarea id="pub-payload" placeholder="Message payload" rows="3" required></textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <button type="submit" class="btn btn-primary">Publish</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Data Points Section -->
+            <section id="data-section" class="content-section">
+                <div class="section-card">
+                    <div class="card-header">
+                        <h3>Received Data Points</h3>
+                        <div class="card-actions">
+                            <button id="refresh-data-btn" class="btn btn-secondary">Refresh</button>
+                            <button id="clear-data-btn" class="btn btn-danger">Clear All</button>
+                        </div>
+                    </div>
+                    <div id="data-points-table" class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Broker</th>
+                                    <th>Topic</th>
+                                    <th>Payload</th>
+                                    <th>QoS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="data-points-body">
+                                <tr>
+                                    <td colspan="5" class="empty-state">No data points received</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Terminal Section -->
+            <section id="terminal-section" class="content-section">
+                <div class="section-card terminal-card">
+                    <div class="card-header">
+                        <h3>Terminal</h3>
+                        <button id="clear-terminal-btn" class="btn btn-secondary">Clear</button>
+                    </div>
+                    <div id="terminal-output" class="terminal-output"></div>
+                    <div class="terminal-input-container">
+                        <span class="terminal-prompt">$</span>
+                        <input type="text" id="terminal-input" class="terminal-input" placeholder="Type 'help' for commands">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Export Section -->
+            <section id="export-section" class="content-section">
+                <div class="section-card">
+                    <h3>Export Data</h3>
+                    <p>Export your MQTT data points to SQL format for database import.</p>
+                    <div class="export-actions">
+                        <button id="export-sql-btn" class="btn btn-primary">Generate SQL Export</button>
+                        <button id="download-json-btn" class="btn btn-secondary">Download JSON</button>
+                    </div>
+                    <div id="sql-output" class="code-output" style="display: none;">
+                        <h4>SQL Output</h4>
+                        <pre id="sql-content"></pre>
+                        <button id="copy-sql-btn" class="btn btn-secondary">Copy to Clipboard</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
